@@ -77,7 +77,7 @@ public class Utils : MonoBehaviour {
 
 	//Test to see whether boudns are on screen
 	public static Vector3 ScreenBoundsCheck(Bounds bnd, BoundsTest test = BoundsTest.center){
-		return (BoundsInBoundsCheck ( _camBounds, bnd, test));
+		return (BoundsInBoundsCheck ( cambounds, bnd, test));
 	}
 
 		public static Vector3 BoundsInBoundsCheck ( Bounds bigB, Bounds lilB, BoundsTest test = BoundsTest.onScreen){

@@ -34,7 +34,7 @@ public class Utils : MonoBehaviour {
 		//If this gameObject has a renderer component
 		if (go.GetComponent<Renderer>() != null){
 			//expand b to contain the renderer's bounds
-			b = BoundsUnion(b,go.GetComponent<Renderer>().bounds);
+			b = BoundsUnion(b, go.GetComponent<Renderer>().bounds);
 		}
 		//If this GameObject has a Collider Component...
 		if (go.GetComponent<Collider>() != null){
@@ -46,14 +46,16 @@ public class Utils : MonoBehaviour {
 			//Expand b to contain their Bounds as well
 			b = BoundsUnion(b,CombineBoundsOfChildren(t.gameObject));
 		}
+		return(b);
+	}
 
 	//Make a static read-only public property camBounds
 	static public Bounds camBounds{
 		get{
 			//if _camBounds hasn't been set yet
-			if (_camBounds.sizeof == Vector3.zero){
+			if (_camBounds.size == Vector3.zero){
 				//SetCameraBounds using the default Camera
-					SetCameraBounds();
+				SetCameraBounds();
 			}
 				return(_camBounds);
 			}
@@ -64,7 +66,7 @@ public class Utils : MonoBehaviour {
 	//This function is used by camBounds to set _camBounds and can also be called directly
 		public static void SetCameraBounds (Camera cam=null){
 			//If no Camera was pass in, use the main Camera
-			if (Camera == null) cam = Camera.main;
+			if (cam == null) cam = Camera.main;
 			//This makes a couple of important assumptions about the Camera
 			//1. The Camera is Orthopedic 2. The camera is at a rotation of R:[0,0,0]
 
@@ -73,12 +75,12 @@ public class Utils : MonoBehaviour {
 			Vector3 bottomRight = new Vector3(Screen.width, Screen.height,0);
 
 			//Convert these to world coordinates
-			Vector3 boundTLN = Camera.ScreenToWorldPoint(topLeft);
-			Vector3 boundBRF = Camera.ScreenToWorldPoint(bottomRight);
+			Vector3 boundTLN = cam.ScreenToWorldPoint(topLeft);
+			Vector3 boundBRF = cam.ScreenToWorldPoint(bottomRight);
 
 			//Adjust their za to be at the near and far camera clipping planes
-			boundTLN.w += Camera.nearClipPlane;
-			boundBRF.z += Camera.farClipPlane;
+			boundTLN.z += cam.nearClipPlane;
+			boundBRF.z += cam.farClipPlane;
 
 			//Find the center of the Bounds
 			Vector3 center = (boundTLN + boundBRF)/2f;
@@ -89,18 +91,94 @@ public class Utils : MonoBehaviour {
 		}
 			
 
+		//Checks to see whether the bounds bnd are within the camBounds
+		public static Vector3 ScreenBoundsCheck(Bounds bnd, BoundsTest test = BoundsTest.center){
+			return (BoundsInBoundsCheck(camBounds, bnd, test));
+		}
 
-		return(b);
-	}
+		//Checks to see whether Bounds lilB are within Boungs bigB
+		public static Vector3 BoundsInBoundsCheck(Bounds bigB, Bounds lilB, BoundsTest test = BoundsTest.onscreen){
+			//The behavior of this function is different based on the BoundsTest that has been selected
 
+			//Get the center of lilB
+			Vector3 pos = lilB.center;
 
-	// Use this for initialization
-	void Start () {
-	
+			//Initalize the offset at [0.0.0]
+			Vector3 off = Vector3.zero;
+
+			switch (test){
+			//The center test determines what off (offset would have to be applied to lilB to move its center back inside bigB
+			case BoundsTest.center:
+			if (bigB.Contains(pos)){
+				return(Vector3.zero);
+			}
+
+			if (pos.x>bigB.max.x){
+				off.x = pos.x - bigB.max.x;
+			} else if (pos.x<bigB.min.x){
+				off.x=pos.x - bigB.min.x;
+			}
+			if (pos.y> bigB.max.y){
+				off.y = pos.y - bigB.max.y;
+			} else if (pos.y<bigB.min.y){
+				off.y = pos.y - bigB.min.y;
+			}
+			if (pos.z > bigB.max.z){
+				off.z = pos.z - bigB.max.z;
+			} else if (pos.z < bigB.min.z){
+				off.z = pos.z - bigB.min.z;
+			}
+			return(off);
+
+			//The oncreeen test determines what off would have to be applied to keep all of lilB inside big B
+
+			case BoundsTest.onscreen:
+				if (bigB.Contains(lilB.min) && bigB.Contains(lilB.max)){
+					return(Vector3.zero);
+				}
+
+				if (lilB.max.x > bigB.max.x){
+					off.x = lilB.max.x - bigB.max.x;
+				} else if (lilB.min.x < bigB.min.x){
+					off.x = lilB.min.x - bigB.min.x;
+				}
+				if (lilB.max.y > bigB.max.y){
+					off.y = lilB.max.y - bigB.max.y;
+				} else if (lilB.min.y < bigB.min.y){
+					off.y = lilB.min.y - bigB.min.y;
+				}
+				if (lilB.max.z > bigB.max.z){
+					off.z = lilB.max.z - bigB.max.z;
+				} else if (lilB.min.z < bigB.min.z){
+					off.z = lilB.min.z - bigB.min.z;
+				}
+				return (off);
+
+				case BoundsTest.offScreen:
+				bool cMin = bigB.Contains(lilB.min);
+				bool cMax = bigB.Contains(lilB.max);
+				if (cMin || cmax){
+					return (Vector3.zero);
+				}
+
+				if (lilB.min.x > bigB.max.x){
+					off.x = lilB.min.x - bigB.max.x;
+				} else if (lilB.max.x < bigB.min.x){
+					off.x = lilB.max.x - bigB.min.x;
+				}
+				if (lilB.min.y > bigB.max.y){
+					off.y = lilB.min.y - bigB.max.y;
+				} else if (lilB.max.y < bigB.min.y){
+					off.y = lilB.max.y - bigB.min.y;
+				}
+				if (lilB.min.z > bigB.max.z){
+					off.z = lilB.min.z - bigB.max.z;
+				} else if (lilB.max.z<bigB.min.z){
+					off.z = lilB.max.z - bigB.min.z;
+				}
+				return(off);
+			}
+			return(vector3.zero);
+		}
+
 	}
-	
-	// Update is called once per frame
-	void Update () {
-	
-	}
-}

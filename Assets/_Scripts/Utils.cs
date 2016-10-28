@@ -43,7 +43,7 @@ public class Utils : MonoBehaviour {
 	}
 
 	//Make a static read-only public property camBounds
-	static public Bounds cambounds {
+	static public Bounds camBounds {
 		get{
 			if (_camBounds.size == Vector3.zero){
 				SetCameraBounds ();
@@ -77,7 +77,7 @@ public class Utils : MonoBehaviour {
 
 	//Test to see whether boudns are on screen
 	public static Vector3 ScreenBoundsCheck(Bounds bnd, BoundsTest test = BoundsTest.center){
-		return (BoundsInBoundsCheck ( cambounds, bnd, test));
+		return (BoundsInBoundsCheck ( camBounds, bnd, test));
 	}
 
 		public static Vector3 BoundsInBoundsCheck ( Bounds bigB, Bounds lilB, BoundsTest test = BoundsTest.onScreen){

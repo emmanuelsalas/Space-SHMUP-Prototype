@@ -8,10 +8,12 @@ public class Main : MonoBehaviour {
 	public GameObject[] prefabEnemies;
 	public float enemySpawnPerSecond = 0.5f;
 	public float enemySpawnPadding = 1.5f;
+	public WeaponDefinition[] weaponDefinitions;
 
 
 	public bool __________;
 
+	public WeaponType[] activeWeaponTypes;
 	public float enemySpawnRate;
 
 	void Awake (){
@@ -20,6 +22,13 @@ public class Main : MonoBehaviour {
 		Utils.SetCameraBounds(this.GetComponent<Camera>());
 		enemySpawnRate = 1f/enemySpawnPerSecond;
 		Invoke ("SpawnEnemy", enemySpawnRate);
+	}
+
+	void Start() {
+		activeWeaponTypes = new WeaponType[weaponDefinitions.Length]; 
+		for ( int i=0; i<weaponDefinitions.Length; i++ ) {
+			activeWeaponTypes[i] = weaponDefinitions[i].type; 
+		}
 	}
 
 	public void SpawnEnemy(){
